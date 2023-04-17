@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 class PomStatusBarFactory : StatusBarWidgetFactory {
     @Volatile
-    var isAvailable: AtomicBoolean = AtomicBoolean(false);
+    var isAvailable: AtomicBoolean = AtomicBoolean(true);
 
     init {
         ApplicationManager.getApplication().messageBus.connect().subscribe(ProjectManager.TOPIC, PomStatusBarProjectListener(isAvailable));

@@ -12,7 +12,7 @@ class PomStatusBarPresentation(private val project: Project) : MultipleTextValue
 
     private val LOG = Logger.getInstance(PomStatusBarPresentation::class.java)
 
-    private var currentVersion: String = "未知";
+    private var currentVersion: String = "unknown-pom-version";
     override fun getPopupStep(): ListPopup? {
         return null
     }
