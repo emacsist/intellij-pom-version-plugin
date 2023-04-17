@@ -17,17 +17,20 @@ import javax.swing.JComponent
 
 
 object PomStatusBarUtil {
-    private fun getModule(project: Project): Module {
+    private fun getModule(project: Project): Module? {
         val selectedFiles = FileEditorManager.getInstance(project).selectedFiles
         return if (selectedFiles.isNotEmpty()) {
             val currentFile = selectedFiles[0]
             ModuleUtilCore.findModuleForFile(currentFile, project)!!
         } else {
-            ModuleManager.getInstance(project).modules[0]
+            getRootModule(project)
         }
     }
 
-    private fun getRootModule(project: Project): Module {
+    private fun getRootModule(project: Project): Module? {
+        if (ModuleManager.getInstance(project).modules.isEmpty()) {
+            return null;
+        }
         return ModuleManager.getInstance(project).modules[0]
     }
 
@@ -35,8 +38,14 @@ object PomStatusBarUtil {
         return getModulePomFile(getModule(project));
     }
 
-    private fun getModulePomFile(module: Module): VirtualFile? {
-        val rootDir = ModuleRootManager.getInstance(module).contentRoots[0]
+    private fun getModulePomFile(module: Module?): VirtualFile? {
+        if (module == null) {
+            return null;
+        }
+        if (ModuleRootManager.getInstance(module).contentRoots.isEmpty()) {
+            return null;
+        }
+        val rootDir = ModuleRootManager.getInstance(module).contentRoots[0];
         return rootDir.findFileByRelativePath("pom.xml")
     }
 

@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "io.github.emacsist"
-version = "0.0.1"
+version = "0.0.3"
 
 repositories {
     mavenCentral()
@@ -31,7 +31,7 @@ tasks {
     }
 
     patchPluginXml {
-        sinceBuild.set("222")
+        sinceBuild.set("221")
         untilBuild.set("232.*")
     }
 

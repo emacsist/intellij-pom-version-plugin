@@ -1,5 +1,6 @@
 package io.github.emacsist.idea.pomversion
 
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.ListPopup
 import com.intellij.openapi.wm.StatusBarWidget.MultipleTextValuesPresentation
@@ -9,6 +10,8 @@ import java.awt.event.MouseEvent
 
 class PomStatusBarPresentation(private val project: Project) : MultipleTextValuesPresentation {
 
+    private val LOG = Logger.getInstance(PomStatusBarPresentation::class.java)
+
     private var currentVersion: String = "未知";
     override fun getPopupStep(): ListPopup? {
         return null
@@ -17,7 +20,8 @@ class PomStatusBarPresentation(private val project: Project) : MultipleTextValue
     override fun getSelectedValue(): String {
         val version = PomStatusBarUtil.getVersionValue(project) ?: return currentVersion
         currentVersion = version;
-        return currentVersion;
+        LOG.info("change version: $version")
+        return currentVersion
     }
 
     override fun getTooltipText(): String {
