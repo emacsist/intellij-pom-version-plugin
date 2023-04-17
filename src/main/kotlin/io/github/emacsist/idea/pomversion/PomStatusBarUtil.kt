@@ -21,7 +21,7 @@ object PomStatusBarUtil {
         val selectedFiles = FileEditorManager.getInstance(project).selectedFiles
         return if (selectedFiles.isNotEmpty()) {
             val currentFile = selectedFiles[0]
-            ModuleUtilCore.findModuleForFile(currentFile, project)!!
+            ModuleUtilCore.findModuleForFile(currentFile, project)
         } else {
             getRootModule(project)
         }

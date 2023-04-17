@@ -4,6 +4,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.wm.StatusBar
 import com.intellij.openapi.wm.StatusBarWidget
 import com.intellij.openapi.wm.StatusBarWidgetFactory
@@ -17,8 +18,12 @@ class PomStatusBarFactory : StatusBarWidgetFactory {
     var isAvailable: AtomicBoolean = AtomicBoolean(true);
 
     init {
-        ApplicationManager.getApplication().messageBus.connect().subscribe(ProjectManager.TOPIC, PomStatusBarProjectListener(isAvailable));
-        ApplicationManager.getApplication().messageBus.connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, PomStatusBarListener());
+        val listenerHandler = PomStatusBarListener(isAvailable)
+        ApplicationManager.getApplication().messageBus.connect().subscribe(ProjectManager.TOPIC, listenerHandler);
+        ApplicationManager.getApplication().messageBus.connect()
+            .subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, listenerHandler);
+        ApplicationManager.getApplication().messageBus.connect()
+            .subscribe(VirtualFileManager.VFS_CHANGES, listenerHandler);
     }
 
     override fun getId(): @NonNls String {
