@@ -5,6 +5,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.StatusBar
@@ -17,6 +18,12 @@ import javax.swing.JComponent
 
 
 object PomStatusBarUtil {
+
+    fun updatePomVersionStatusBar() {
+        val defProject = ProjectManager.getInstance().defaultProject;
+        WindowManager.getInstance().getStatusBar(defProject)?.updateWidget(PomStatusBarConstant.ID)
+    }
+
     private fun getModule(project: Project): Module? {
         val selectedFiles = FileEditorManager.getInstance(project).selectedFiles
         return if (selectedFiles.isNotEmpty()) {

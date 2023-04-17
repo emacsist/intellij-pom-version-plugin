@@ -4,8 +4,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManagerListener
 import java.util.concurrent.atomic.AtomicBoolean
 
-class PomStatusBarProjectListener(private var isAvailable: AtomicBoolean) : ProjectManagerListener {
+class PomStatusBarProjectListener : ProjectManagerListener {
     override fun projectOpened(project: Project) {
-        isAvailable.set(PomStatusBarUtil.getVersionValue(project) != null);
+        PomStatusBarUtil.updatePomVersionStatusBar();
     }
 }

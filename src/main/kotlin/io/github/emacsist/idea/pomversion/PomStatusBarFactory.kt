@@ -10,15 +10,11 @@ import com.intellij.openapi.wm.StatusBarWidget
 import com.intellij.openapi.wm.StatusBarWidgetFactory
 import org.jetbrains.annotations.Nls
 import org.jetbrains.annotations.NonNls
-import java.util.concurrent.atomic.AtomicBoolean
 
 
 class PomStatusBarFactory : StatusBarWidgetFactory {
-    @Volatile
-    var isAvailable: AtomicBoolean = AtomicBoolean(true);
-
     init {
-        val listenerHandler = PomStatusBarListener(isAvailable)
+        val listenerHandler = PomStatusBarListener()
         ApplicationManager.getApplication().messageBus.connect().subscribe(ProjectManager.TOPIC, listenerHandler);
         ApplicationManager.getApplication().messageBus.connect()
             .subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, listenerHandler);
@@ -35,7 +31,7 @@ class PomStatusBarFactory : StatusBarWidgetFactory {
     }
 
     override fun isAvailable(project: Project): Boolean {
-        return isAvailable.get();
+        return PomStatusBarUtil.getVersionValue(project) != null
     }
 
     override fun createWidget(project: Project): StatusBarWidget {
