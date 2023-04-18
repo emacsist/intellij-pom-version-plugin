@@ -11,33 +11,43 @@ import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.wm.StatusBar
 import com.intellij.openapi.wm.WindowManager
 import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlDocument
 import com.intellij.psi.xml.XmlFile
+import java.util.concurrent.atomic.AtomicBoolean
 
 
 private val LOG = logger<PomStatusBarUtil>()
 
 object PomStatusBarUtil {
 
-    fun updatePomVersionStatusBar() {
+    @Volatile
+    var update: AtomicBoolean = AtomicBoolean(false)
 
+    fun updatePomVersionStatusBar() {
         val project: Project? = ProjectUtil.getActiveProject();
+        var statusBar: StatusBar? = null;
         if (project != null) {
-            WindowManager.getInstance().getStatusBar(project)?.updateWidget(PomStatusBarConstant.ID)
-            LOG.info("update widget by active project $project")
+            statusBar = WindowManager.getInstance().getStatusBar(project)
         } else {
             val dataContext = DataManager.getInstance().dataContextFromFocusAsync
             dataContext.onSuccess {
                 val focusProject = it.getData(PlatformDataKeys.PROJECT)
                 if (focusProject != null) {
-                    WindowManager.getInstance().getStatusBar(focusProject)?.updateWidget(PomStatusBarConstant.ID)
-                    LOG.info("update widget by focusProject $focusProject")
+                    statusBar = WindowManager.getInstance().getStatusBar(focusProject)
                 }
             }
         }
-
+        val widget = statusBar?.getWidget(PomStatusBarConstant.ID)
+        if (widget != null) {
+            statusBar!!.updateWidget(PomStatusBarConstant.ID)
+            LOG.info("update widget by project $project")
+        } else {
+            LOG.info("widget is null,  project $project")
+        }
+        update.set(false)
     }
 
     private fun getModule(project: Project): Module? {
@@ -62,7 +72,6 @@ object PomStatusBarUtil {
     }
 
     private fun getModulePomFile(module: Module?): VirtualFile? {
-
         if (module == null) {
             return null
         }
