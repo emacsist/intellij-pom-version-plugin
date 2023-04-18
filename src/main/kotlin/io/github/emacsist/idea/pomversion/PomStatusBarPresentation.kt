@@ -1,16 +1,15 @@
 package io.github.emacsist.idea.pomversion
 
-import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.ListPopup
 import com.intellij.openapi.wm.StatusBarWidget.MultipleTextValuesPresentation
 import com.intellij.util.Consumer
 import java.awt.event.MouseEvent
 
+private val LOG = logger<PomStatusBarPresentation>()
 
 class PomStatusBarPresentation(private val project: Project) : MultipleTextValuesPresentation {
-
-    private val LOG = Logger.getInstance(PomStatusBarPresentation::class.java)
 
     @Volatile
     private var currentVersion: String = PomStatusBarConstant.UNKNOWN;
@@ -19,9 +18,10 @@ class PomStatusBarPresentation(private val project: Project) : MultipleTextValue
     }
 
     override fun getSelectedValue(): String {
-        val version = PomStatusBarUtil.getVersionValue(project) ?: return currentVersion
-        currentVersion = version;
-        LOG.info("change version: $version")
+        val version = PomStatusBarUtil.getVersionValue(project)
+        if (version != null) {
+            currentVersion = version;
+        }
         return currentVersion
     }
 

@@ -1,27 +1,43 @@
 package io.github.emacsist.idea.pomversion
 
+import com.intellij.ide.DataManager
+import com.intellij.ide.impl.ProjectUtil
+import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.wm.StatusBar
-import com.intellij.openapi.wm.StatusBarWidget
 import com.intellij.openapi.wm.WindowManager
 import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlDocument
 import com.intellij.psi.xml.XmlFile
-import javax.swing.JComponent
 
+
+private val LOG = logger<PomStatusBarUtil>()
 
 object PomStatusBarUtil {
 
     fun updatePomVersionStatusBar() {
-        val defProject = ProjectManager.getInstance().defaultProject;
-        WindowManager.getInstance().getStatusBar(defProject)?.updateWidget(PomStatusBarConstant.ID)
+
+        val project: Project? = ProjectUtil.getActiveProject();
+        if (project != null) {
+            WindowManager.getInstance().getStatusBar(project)?.updateWidget(PomStatusBarConstant.ID)
+            LOG.info("update widget by active project $project")
+        } else {
+            val dataContext = DataManager.getInstance().dataContextFromFocusAsync
+            dataContext.onSuccess {
+                val focusProject = it.getData(PlatformDataKeys.PROJECT)
+                if (focusProject != null) {
+                    WindowManager.getInstance().getStatusBar(focusProject)?.updateWidget(PomStatusBarConstant.ID)
+                    LOG.info("update widget by focusProject $focusProject")
+                }
+            }
+        }
+
     }
 
     private fun getModule(project: Project): Module? {
@@ -46,11 +62,12 @@ object PomStatusBarUtil {
     }
 
     private fun getModulePomFile(module: Module?): VirtualFile? {
+
         if (module == null) {
-            return null;
+            return null
         }
         if (ModuleRootManager.getInstance(module).contentRoots.isEmpty()) {
-            return null;
+            return null
         }
         val rootDir = ModuleRootManager.getInstance(module).contentRoots[0];
         return rootDir.findFileByRelativePath("pom.xml")
@@ -62,9 +79,14 @@ object PomStatusBarUtil {
             pomFile = getModulePomFile(getRootModule(project));
         }
         if (pomFile == null) {
+            LOG.info("get version from $project is null")
             return null
         }
         return getVersionValue(pomFile, project);
+    }
+
+    fun isMaven(project: Project): Boolean {
+        return getModulePomFile(getRootModule(project)) != null
     }
 
     private fun getVersionValue(pom: VirtualFile, project: Project): String? {
@@ -79,12 +101,26 @@ object PomStatusBarUtil {
                     if (rootTag != null) {
                         val versionTag = rootTag.findFirstSubTag("version")
                         if (versionTag != null) {
-                            return versionTag.value.trimmedText;
+                            val ver = versionTag.value.trimmedText
+                            LOG.info("found version tag $ver from $pom, $project")
+                            return ver;
+                        } else {
+                            //get parent version
+                            val parentTag = rootTag.findFirstSubTag("parent")
+                            if (parentTag != null) {
+                                val parentVersion = parentTag.findFirstSubTag("version");
+                                if (parentVersion != null) {
+                                    val ver = parentVersion.value.trimmedText
+                                    LOG.info("found parent version tag $ver from $pom, $project")
+                                    return ver
+                                }
+                            }
                         }
                     }
                 }
             }
         }
+        LOG.warn("get version value finally null: $pom, $project")
         return null
     }
 }
